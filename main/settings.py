@@ -135,6 +135,17 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://ikramov.uz',
+    'http://localhost:8006',
+    'http://127.0.0.1:8006',
+    'https://127.0.0.1:8006',
+]
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False
+CSRF_USE_SESSIONS = False
+
 # Telegram Bot Configuration
 TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN', default='')
 TELEGRAM_ADMIN_ID = config('TELEGRAM_ADMIN_ID', default='739089730')

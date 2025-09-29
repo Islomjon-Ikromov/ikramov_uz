@@ -1150,7 +1150,7 @@
                 <h3>Send us a message</h3>
               </div>
 
-              <form action="{% url 'index:home' %}" method="post" class="php-email-form">
+              <form id="contact-form" class="php-email-form">
                 {% csrf_token %}
                 <div class="row">
                   <div class="col-md-6">
@@ -1247,6 +1247,72 @@
 
   <!-- Main JS File -->
   <script src="{% static 'MyPage/assets/js/main.js' %}"></script>
+
+  <!-- Contact Form AJAX Handler -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('contact-form');
+      if (form) {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Get form data
+          const formData = new FormData(form);
+          
+          // Show loading state
+          const submitBtn = form.querySelector('button[type="submit"]');
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = 'Sending...';
+          submitBtn.disabled = true;
+          
+          // Send AJAX request
+          fetch('{% url "index:contact_form" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Show success/error message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = data.success ? 'alert alert-success' : 'alert alert-danger';
+            messageDiv.textContent = data.message;
+            
+            // Insert message before form
+            form.parentNode.insertBefore(messageDiv, form);
+            
+            // Clear form if successful
+            if (data.success) {
+              form.reset();
+            }
+            
+            // Scroll to message
+            messageDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            // Remove message after 5 seconds
+            setTimeout(() => {
+              messageDiv.remove();
+            }, 5000);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.textContent = 'An error occurred. Please try again.';
+            form.parentNode.insertBefore(messageDiv, form);
+            messageDiv.scrollIntoView({ behavior: 'smooth' });
+          })
+          .finally(() => {
+            // Restore button state
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+          });
+        });
+      }
+    });
+  </script>
 
 </body>
 
