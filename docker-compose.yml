@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  web:
+    container_name: wiki_hamkor  # Custom container name
+    build: .
+    ports:
+      - "8052:8052"
+    volumes:
+      - .:/app
+      - wiki_hamkor_data:/data  # Named volume
+    env_file:
+      - .env
+    networks:
+      - wiki_hamkor_net  # Custom network
+
+volumes:
+  wiki_hamkor_data:  # Volume declaration
+
+networks:
+  wiki_hamkor_net: # Network declaration
+    driver: bridge
