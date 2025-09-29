@@ -21,13 +21,19 @@ If you need to change it, edit the `.env` file in your project root.
 
 ## 3. Set Up Webhook
 
-The bot is configured to use webhooks instead of polling. The webhook URL is already set:
+The bot is configured to use webhooks instead of polling. You can set up the webhook in two ways:
 
+### Method 1: Via Browser (Easiest)
+Simply visit: `https://ikramov.uz/bot/update/`
+
+This will automatically set up the webhook and show you a confirmation page.
+
+### Method 2: Via Command Line
 ```bash
 python manage.py setup_webhook
 ```
 
-This will set the webhook URL to: `https://ikramov.uz/bot/update/`
+Both methods will set the webhook URL to: `https://ikramov.uz/bot/update/`
 
 ## 4. Start Your Bot
 
