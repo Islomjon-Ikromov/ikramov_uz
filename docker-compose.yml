@@ -15,7 +15,7 @@ services:
       - ikramov_uz_net  # Custom network
 
 volumes:
-  ikramov_uzr_data:  # Volume declaration
+  ikramov_uz_data:  # Volume declaration
 
 networks:
   ikramov_uz_net: # Network declaration
