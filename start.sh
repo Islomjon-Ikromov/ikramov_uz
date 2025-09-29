@@ -12,6 +12,6 @@ python manage.py migrate
 python manage.py collectstatic --noinput
 
 # Run the development server
-# python manage.py runserver 0.0.0.0:8082
+python manage.py runserver 0.0.0.0:8082
 
-gunicorn main.wsgi:application --bind 0.0.0.0:8082 --workers 1
+# gunicorn main.wsgi:application --bind 0.0.0.0:8082 --workers 1
