@@ -2,21 +2,21 @@ version: '3.9'
 
 services:
   web:
-    container_name: wiki_hamkor  # Custom container name
+    container_name: ikramov_uz  # Custom container name
     build: .
     ports:
-      - "8052:8052"
+      - "8082:8082"
     volumes:
       - .:/app
-      - wiki_hamkor_data:/data  # Named volume
+      - ikramov_uz_data:/data  # Named volume
     env_file:
       - .env
     networks:
-      - wiki_hamkor_net  # Custom network
+      - ikramov_uz_net  # Custom network
 
 volumes:
-  wiki_hamkor_data:  # Volume declaration
+  ikramov_uzr_data:  # Volume declaration
 
 networks:
-  wiki_hamkor_net: # Network declaration
+  ikramov_uz_net: # Network declaration
     driver: bridge

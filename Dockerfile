@@ -11,6 +11,6 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . /app/
 
-EXPOSE 8052
+EXPOSE 8082
 
 CMD ["sh", "start.sh"]
