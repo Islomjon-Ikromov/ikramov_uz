@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponseServerError
 from bot.services import TelegramBotService
 from bot.models import ContactMessage
 
@@ -49,3 +49,21 @@ def home(request):
             print(f"Error: {str(e)}")
     
     return render(request, 'index.html', context)
+
+
+def custom_404_view(request, exception):
+    """Custom 404 error page"""
+    context = {
+        'title': '404 - Page Not Found',
+        'page_name': '404'
+    }
+    return render(request, '404.html', context, status=404)
+
+
+def custom_500_view(request):
+    """Custom 500 error page"""
+    context = {
+        'title': '500 - Server Error',
+        'page_name': '500'
+    }
+    return render(request, '500.html', context, status=500)
