@@ -119,12 +119,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Directory where static files are collected
 
+# In development, also look for static files in these directories
 if DEBUG:
-    STATICFILES_DIRS = [BASE_DIR / 'static']  # Serve static from app in development
-# Production Configuration (when DEBUG=False)
-else:
-    STATIC_ROOT = BASE_DIR / 'staticfiles'  # Directory where static files are collected
+    STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Media files
 MEDIA_URL = '/media/'
