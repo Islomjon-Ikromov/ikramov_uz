@@ -21,36 +21,56 @@ class TelegramBotService:
                 logger.error("Telegram bot token not configured")
                 return False
             
+            if not self.admin_id:
+                logger.error("Telegram admin ID not configured")
+                return False
+            
             # Create bot instance if not exists
             if not self.bot:
                 self.bot = telebot.TeleBot(self.bot_token)
             
             # Send message to admin
-            self.bot.send_message(int(self.admin_id), message_text)
-            logger.info(f"Message sent to admin {self.admin_id}")
-            return True
+            try:
+                self.bot.send_message(int(self.admin_id), message_text, parse_mode='HTML')
+                logger.info(f"Message sent to admin {self.admin_id}")
+                return True
+            except telebot.apihelper.ApiTelegramException as api_error:
+                logger.error(f"Telegram API error: {str(api_error)}")
+                if "chat not found" in str(api_error).lower():
+                    logger.error(f"Chat with admin {self.admin_id} not found. Make sure the bot has started a conversation with the admin.")
+                return False
             
+        except ValueError as ve:
+            logger.error(f"Invalid admin ID format: {str(ve)}")
+            return False
         except Exception as e:
-            logger.error(f"Error sending message to admin: {str(e)}")
+            logger.error(f"Error sending message to admin: {str(e)}", exc_info=True)
             return False
     
     def send_contact_form_message(self, name, email, subject, message):
         """
         Send contact form data to admin via Telegram
         """
-        message_text = f"""
-🔔 New Contact Form Submission
+        # Escape HTML special characters for Telegram
+        def escape_html(text):
+            if not text:
+                return ""
+            return (str(text)
+                    .replace('&', '&amp;')
+                    .replace('<', '&lt;')
+                    .replace('>', '&gt;'))
+        
+        message_text = f"""🔔 <b>New Contact Form Submission</b>
 
-👤 Name: {name}
-📧 Email: {email}
-📝 Subject: {subject}
+👤 <b>Name:</b> {escape_html(name)}
+📧 <b>Email:</b> {escape_html(email)}
+📝 <b>Subject:</b> {escape_html(subject)}
 
-💬 Message:
-{message}
+💬 <b>Message:</b>
+{escape_html(message)}
 
 ---
-Sent from ikramov.uz website
-        """
+<i>Sent from ikramov.uz website</i>"""
         
         return self.send_message_to_admin(message_text)
     

@@ -1307,37 +1307,37 @@
                 <h3>Send us a message</h3>
               </div>
 
-              <form id="contact-form" class="php-email-form">
+              <form id="contact-form" class="php-email-form" action="{% url 'index:contact_form' %}" method="POST">
                 {% csrf_token %}
                 <div class="row">
                   <div class="col-md-6">
                     <div class="form-group">
                       <label>Full Name</label>
-                      <input type="text" name="name" required="">
+                      <input type="text" name="name" id="name" required>
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="form-group">
                       <label>Email Address</label>
-                      <input type="email" name="email" required="">
+                      <input type="email" name="email" id="email" required>
                     </div>
                   </div>
                 </div>
 
                 <div class="form-group">
                   <label>Subject</label>
-                  <input type="text" name="subject" required="">
+                  <input type="text" name="subject" id="subject" required>
                 </div>
 
                 <div class="form-group">
                   <label for="projectMessage">Message</label>
-                  <textarea name="message" id="projectMessage" rows="5" required=""></textarea>
+                  <textarea name="message" id="projectMessage" rows="5" required></textarea>
                 </div>
 
                 <div class="my-3">
-                  <div class="loading">Loading</div>
-                  <div class="error-message"></div>
-                  <div class="sent-message">Your message has been sent. Thank you!</div>
+                  <div class="loading" style="display: none;">Loading</div>
+                  <div class="error-message" style="display: none;"></div>
+                  <div class="sent-message" style="display: none;">Your message has been sent. Thank you!</div>
                 </div>
 
                 <button type="submit" class="submit-btn">
@@ -1410,60 +1410,143 @@
         form.addEventListener('submit', function(e) {
           e.preventDefault();
           
+          // Get CSRF token
+          const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+          if (!csrfToken) {
+            console.error('CSRF token not found');
+            showMessage('Security error. Please refresh the page and try again.', 'error');
+            return;
+          }
+          
           // Get form data
           const formData = new FormData(form);
+          const name = formData.get('name');
+          const email = formData.get('email');
+          const subject = formData.get('subject');
+          const message = formData.get('message');
+          
+          // Validate form data
+          if (!name || !email || !subject || !message) {
+            showMessage('Please fill in all fields.', 'error');
+            return;
+          }
           
           // Show loading state
           const submitBtn = form.querySelector('button[type="submit"]');
-          const originalText = submitBtn.textContent;
-          submitBtn.textContent = 'Sending...';
+          const submitBtnSpan = submitBtn.querySelector('span');
+          const originalText = submitBtnSpan ? submitBtnSpan.textContent : 'Send Message';
+          if (submitBtnSpan) {
+            submitBtnSpan.textContent = 'Sending...';
+          }
           submitBtn.disabled = true;
+          
+          // Hide previous messages
+          hideMessages();
+          
+          // Show loading
+          const loadingDiv = form.querySelector('.loading');
+          if (loadingDiv) loadingDiv.style.display = 'block';
           
           // Send AJAX request
           fetch('{% url "index:contact_form" %}', {
             method: 'POST',
             body: formData,
             headers: {
-              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
+              'X-CSRFToken': csrfToken.value,
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
           })
-          .then(response => response.json())
-          .then(data => {
-            // Show success/error message
-            const messageDiv = document.createElement('div');
-            messageDiv.className = data.success ? 'alert alert-success' : 'alert alert-danger';
-            messageDiv.textContent = data.message;
-            
-            // Insert message before form
-            form.parentNode.insertBefore(messageDiv, form);
-            
-            // Clear form if successful
-            if (data.success) {
-              form.reset();
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
             }
+            return response.json();
+          })
+          .then(data => {
+            hideMessages();
             
-            // Scroll to message
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
-            
-            // Remove message after 5 seconds
-            setTimeout(() => {
-              messageDiv.remove();
-            }, 5000);
+            if (data.success) {
+              // Show success message
+              const sentMessage = form.querySelector('.sent-message');
+              if (sentMessage) {
+                sentMessage.style.display = 'block';
+                sentMessage.textContent = data.message || 'Your message has been sent successfully!';
+              }
+              
+              // Clear form
+              form.reset();
+              
+              // Show success alert
+              showMessage(data.message || 'Your message has been sent successfully!', 'success');
+            } else {
+              // Show error message
+              const errorMessage = form.querySelector('.error-message');
+              if (errorMessage) {
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = data.message || 'An error occurred. Please try again.';
+              }
+              showMessage(data.message || 'An error occurred. Please try again.', 'error');
+            }
           })
           .catch(error => {
             console.error('Error:', error);
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'alert alert-danger';
-            messageDiv.textContent = 'An error occurred. Please try again.';
-            form.parentNode.insertBefore(messageDiv, form);
-            messageDiv.scrollIntoView({ behavior: 'smooth' });
+            hideMessages();
+            const errorMessage = form.querySelector('.error-message');
+            if (errorMessage) {
+              errorMessage.style.display = 'block';
+              errorMessage.textContent = 'Network error. Please check your connection and try again.';
+            }
+            showMessage('Network error. Please check your connection and try again.', 'error');
           })
           .finally(() => {
+            // Hide loading
+            const loadingDiv = form.querySelector('.loading');
+            if (loadingDiv) loadingDiv.style.display = 'none';
+            
             // Restore button state
-            submitBtn.textContent = originalText;
+            if (submitBtnSpan) {
+              submitBtnSpan.textContent = originalText;
+            }
             submitBtn.disabled = false;
           });
         });
+      }
+      
+      function showMessage(message, type) {
+        // Remove existing alerts
+        const existingAlerts = document.querySelectorAll('.form-alert');
+        existingAlerts.forEach(alert => alert.remove());
+        
+        // Create alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} form-alert`;
+        alertDiv.style.marginBottom = '20px';
+        alertDiv.textContent = message;
+        
+        // Insert before form
+        const formWrapper = document.querySelector('.form-wrapper');
+        if (formWrapper) {
+          formWrapper.insertBefore(alertDiv, formWrapper.querySelector('form'));
+          
+          // Scroll to alert
+          alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          
+          // Remove after 5 seconds
+          setTimeout(() => {
+            alertDiv.remove();
+          }, 5000);
+        }
+      }
+      
+      function hideMessages() {
+        const loadingDiv = form.querySelector('.loading');
+        const errorMessage = form.querySelector('.error-message');
+        const sentMessage = form.querySelector('.sent-message');
+        
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        if (errorMessage) errorMessage.style.display = 'none';
+        if (sentMessage) sentMessage.style.display = 'none';
       }
     });
   </script>
